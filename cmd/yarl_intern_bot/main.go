@@ -2,15 +2,20 @@ package main
 
 import (
 	"fmt"
-	"yarl_intern_bot/internal/parser"
+	"yarl_intern_bot/internal/readFile"
 )
 
 func main() {
-	p := parser.New(
-		[]string{"https://t.me/s/dvachannel"},
-	)
+	// read channels list
+	channels := readFile.GetChannels()
 
-	for _, item := range p.Parse() {
-		fmt.Println(item.URL, item.Text, item.Date)
+	//get users and their settings
+
+	// parse tg
+
+	// send results to users
+
+	for _, channel := range channels {
+		fmt.Println(channel)
 	}
 }
