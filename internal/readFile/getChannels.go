@@ -2,7 +2,6 @@ package readFile
 
 import (
 	"bufio"
-	"log"
 	"os"
 )
 
@@ -20,7 +19,7 @@ func GetChannels() []string {
 	}
 
 	if err := scanner.Err(); err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	return channels
