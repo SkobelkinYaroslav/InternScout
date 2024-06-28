@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io"
 	"os"
+	"yarl_intern_bot/internal/result"
 )
 
 type User struct {
@@ -35,4 +36,8 @@ func New(userFile string) []*User {
 
 	return users
 
+}
+
+func (u *User) AddResults(result result.Result) {
+	u.Results = append(u.Results, result.URL)
 }
