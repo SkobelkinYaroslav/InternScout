@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
+	"strings"
 	"yarl_intern_bot/internal/user"
 )
 
@@ -16,19 +18,19 @@ func Telegram(users []*user.User) {
 	}
 
 	for _, user := range users {
-		url := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage?chat_id=%d&text=%s", key, user.ID, user.Results)
+		encodedResults := url.QueryEscape(strings.Join(user.Results, "\n"))
+		url := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage?chat_id=%d&text=%s", key, user.ID, encodedResults)
 		resp, err := http.Get(url)
 		if err != nil {
 			log.Println("Error making request:", err)
 			continue
 		}
-		defer resp.Body.Close()
-
 		var result map[string]interface{}
 		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 			log.Println("Error decoding response:", err)
 			continue
 		}
+		resp.Body.Close()
 
 		fmt.Println(result)
 	}
