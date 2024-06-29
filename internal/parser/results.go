@@ -6,7 +6,7 @@ import (
 	"yarl_intern_bot/internal/user"
 )
 
-func ParseResults(parsedResults []result.Result, appUsers []*user.User) {
+func Results(parsedResults []result.Result, appUsers []*user.User) {
 	for _, parsedResult := range parsedResults {
 		for _, appUser := range appUsers {
 			for _, keyword := range appUser.Categories {
