@@ -18,7 +18,13 @@ func Telegram(users []*user.User) {
 	}
 
 	for _, user := range users {
-		encodedResults := url.QueryEscape(strings.Join(user.Results, "\n"))
+		resultsString := "Сегодня ничего нет :("
+		if len(user.Results) > 0 {
+			resultsString = strings.Join(user.Results, "\n")
+		}
+
+		encodedResults := url.QueryEscape(resultsString)
+
 		url := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage?chat_id=%d&text=%s", key, user.ID, encodedResults)
 		resp, err := http.Get(url)
 		if err != nil {

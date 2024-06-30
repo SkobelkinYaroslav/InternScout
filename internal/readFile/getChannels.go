@@ -3,6 +3,7 @@ package readFile
 import (
 	"bufio"
 	"os"
+	"strings"
 )
 
 func GetChannels() []string {
@@ -15,7 +16,8 @@ func GetChannels() []string {
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		channels = append(channels, scanner.Text())
+		str := strings.Replace(scanner.Text(), "https://t.me/", "https://t.me/s/", 1)
+		channels = append(channels, str)
 	}
 
 	if err := scanner.Err(); err != nil {

@@ -24,6 +24,7 @@ func NewTelegramParser(channels []string) TelegramParser {
 
 func (p TelegramParser) Telegram() []result.Result {
 	now := time.Now()
+	startOfToday := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 	re := regexp.MustCompile(`(?i)<br\s*/?>`)
 	responses := make([]result.Result, 0)
 
@@ -41,13 +42,16 @@ func (p TelegramParser) Telegram() []result.Result {
 		dateTime := e.ChildAttr(".time", "datetime")
 
 		parsedDateTime, err := time.Parse(time.RFC3339, dateTime)
+
+		localTime := parsedDateTime.Local()
+
 		if err != nil {
 			log.Printf("Error parsing datetime: %v\n", err)
 			return
 		}
 
-		if now.Before(parsedDateTime) {
-			log.Println("Post is outdated", parsedDateTime)
+		if localTime.Before(startOfToday) {
+			log.Println("Post is outdated:", localTime)
 			return
 		}
 
@@ -58,6 +62,7 @@ func (p TelegramParser) Telegram() []result.Result {
 
 	for _, channel := range p.channels {
 		p.engine.Visit(channel)
+		time.Sleep(10)
 	}
 
 	return responses

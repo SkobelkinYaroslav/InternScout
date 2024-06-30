@@ -10,7 +10,7 @@ func Results(parsedResults []result.Result, appUsers []*user.User) {
 	for _, parsedResult := range parsedResults {
 		for _, appUser := range appUsers {
 			for _, keyword := range appUser.Categories {
-				if strings.Contains(parsedResult.Text, keyword) {
+				if strings.Contains(strings.ToLower(parsedResult.Text), keyword) {
 					appUser.AddResults(parsedResult)
 				}
 			}
