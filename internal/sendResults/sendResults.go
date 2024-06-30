@@ -20,7 +20,11 @@ func Telegram(users []*user.User) {
 	for _, user := range users {
 		resultsString := "Сегодня ничего нет :("
 		if len(user.Results) > 0 {
-			resultsString = strings.Join(user.Results, "\n")
+			arr := make([]string, 0, len(user.Results))
+			for key := range user.Results {
+				arr = append(arr, key)
+			}
+			resultsString = strings.Join(arr, "\n")
 		}
 
 		encodedResults := url.QueryEscape(resultsString)

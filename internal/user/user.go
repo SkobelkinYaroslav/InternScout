@@ -8,9 +8,9 @@ import (
 )
 
 type User struct {
-	ID         int      `json:"ID"`
-	Categories []string `json:"Categories"`
-	Results    []string `json:"Results,omitempty"`
+	ID         int                 `json:"ID"`
+	Categories []string            `json:"Categories"`
+	Results    map[string]struct{} `json:"Results,omitempty"`
 }
 
 func New(userFile string) []*User {
@@ -34,10 +34,14 @@ func New(userFile string) []*User {
 		panic(err)
 	}
 
+	for i := range users {
+		users[i].Results = make(map[string]struct{})
+	}
+
 	return users
 
 }
 
 func (u *User) AddResults(result result.Result) {
-	u.Results = append(u.Results, result.URL)
+	u.Results[result.URL] = struct{}{}
 }
