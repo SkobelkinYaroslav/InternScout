@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/joho/godotenv"
-	parse "yarl_intern_bot/internal/parser"
+	"yarl_intern_bot/internal/parser"
 	"yarl_intern_bot/internal/readFile"
 	"yarl_intern_bot/internal/sendResults"
 	"yarl_intern_bot/internal/user"
@@ -22,11 +22,11 @@ func main() {
 	users := user.New("config.json")
 
 	// parse tg
-	tgParser := parse.NewTelegramParser(channels)
-	results := tgParser.Telegram()
+	telegramParser := parser.NewTelegramParser(channels)
+	results := telegramParser.Telegram()
 
 	// add results to users
-	parse.Results(results, users)
+	parser.InsertResults(results, users)
 
 	// send results to users
 	sendResults.Telegram(users)

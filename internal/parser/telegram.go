@@ -1,4 +1,4 @@
-package parse
+package parser
 
 import (
 	"github.com/gocolly/colly"
@@ -51,7 +51,7 @@ func (p TelegramParser) Telegram() []result.Result {
 		}
 
 		if localTime.Before(startOfToday) {
-			log.Println("Post is outdated:", localTime)
+			//log.Println("Post is outdated:", localTime)
 			return
 		}
 
@@ -62,7 +62,7 @@ func (p TelegramParser) Telegram() []result.Result {
 
 	for _, channel := range p.channels {
 		p.engine.Visit(channel)
-		time.Sleep(10)
+		time.Sleep(3 * time.Second)
 	}
 
 	return responses

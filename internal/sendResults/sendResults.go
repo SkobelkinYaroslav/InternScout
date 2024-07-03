@@ -24,7 +24,7 @@ func Telegram(users []*user.User) {
 			for key := range user.Results {
 				arr = append(arr, key)
 			}
-			resultsString = strings.Join(arr, "\n")
+			resultsString = "Вот что найдено за сегодня: \n" + strings.Join(arr, "\n")
 		}
 
 		encodedResults := url.QueryEscape(resultsString)

@@ -1,4 +1,4 @@
-package parse
+package parser
 
 import (
 	"strings"
@@ -6,7 +6,7 @@ import (
 	"yarl_intern_bot/internal/user"
 )
 
-func Results(parsedResults []result.Result, appUsers []*user.User) {
+func InsertResults(parsedResults []result.Result, appUsers []*user.User) {
 	for _, parsedResult := range parsedResults {
 		for _, appUser := range appUsers {
 			for _, keyword := range appUser.Categories {
