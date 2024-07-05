@@ -69,10 +69,13 @@ func (p TelegramParser) Telegram() []result.Result {
 
 	p.engine.OnError(func(r *colly.Response, err error) {
 		log.Printf("Error while sending request to %s: %v", r.Request.URL, err)
-		time.Sleep(10 * time.Second)
-		if err := r.Request.Retry(); err != nil {
-			log.Printf("Error while retrying request to %s: %v", r.Request.URL, err)
-			return
+		for err != nil {
+			time.Sleep(10 * time.Second)
+			if err = r.Request.Retry(); err != nil {
+				log.Printf("Error while retrying request to %s: %v", r.Request.URL, err)
+			} else {
+				log.Printf("Successfully retried request to %s", r.Request.URL)
+			}
 		}
 	})
 

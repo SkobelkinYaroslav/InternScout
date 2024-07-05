@@ -6,9 +6,9 @@ import (
 	"strings"
 )
 
-func GetChannels() []string {
+func GetChannels(channelFile string) []string {
 	channels := make([]string, 0)
-	file, err := os.Open("channels.txt")
+	file, err := os.Open(channelFile)
 	if err != nil {
 		panic(err)
 	}
