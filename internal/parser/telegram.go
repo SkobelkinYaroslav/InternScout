@@ -39,13 +39,8 @@ func (p TelegramParser) Telegram() []result.Result {
 	p.engine.OnHTML(".tgme_widget_message_wrap", func(e *colly.HTMLElement) {
 		url := e.ChildAttr(".tgme_widget_message_date", "href")
 
-		html, err := e.DOM.Find(".tgme_widget_message_text").Html()
-		if err != nil {
-			log.Printf("Error getting HTML from %s: %v", e.Request.URL, err)
-			return
-		}
-
-		text := re.ReplaceAllString(html, "\n")
+		rawText := e.ChildText(".tgme_widget_message_text")
+		text := re.ReplaceAllString(rawText, "\n")
 
 		dateTime := e.ChildAttr(".time", "datetime")
 
