@@ -8,7 +8,13 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"time"
 	"yarl_intern_bot/internal/user"
+)
+
+const (
+	defaultTimeout  = time.Second * 5
+	defaultMaxTries = 5
 )
 
 func Telegram(users []*user.User) {
@@ -29,8 +35,22 @@ func Telegram(users []*user.User) {
 
 		encodedResults := url.QueryEscape(resultsString)
 
+		tries := 1
 		url := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage?chat_id=%d&text=%s", key, user.ID, encodedResults)
 		resp, err := http.Get(url)
+		for resp.StatusCode != http.StatusOK {
+			time.Sleep(defaultTimeout * time.Duration(tries))
+			resp, err = http.Get(url)
+			if err != nil {
+				log.Println("Error while retrying request:", err)
+				break
+			}
+			if tries == defaultMaxTries {
+				return
+			}
+			tries++
+
+		}
 		if err != nil {
 			log.Println("Error making request:", err)
 			continue

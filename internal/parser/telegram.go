@@ -13,16 +13,19 @@ type TelegramParser struct {
 	channels []string
 }
 
+const (
+	defaultTimeout  = time.Second * 5
+	defaultMaxTries = 5
+)
+
 func NewTelegramParser(channels []string) TelegramParser {
 	c := colly.NewCollector(
 		colly.UserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36"),
 	)
 
-	// Устанавливаем задержку между запросами
 	c.Limit(&colly.LimitRule{
-		DomainGlob:  "*",
-		Delay:       5 * time.Second,
-		RandomDelay: 1 * time.Second,
+		DomainGlob: "*",
+		Delay:      defaultTimeout,
 	})
 
 	return TelegramParser{
@@ -64,13 +67,18 @@ func (p TelegramParser) Telegram() []result.Result {
 
 	p.engine.OnError(func(r *colly.Response, err error) {
 		log.Printf("Error while sending request to %s: %v", r.Request.URL, err)
+		tries := 1
 		for err != nil {
-			time.Sleep(10 * time.Second)
+			time.Sleep(defaultTimeout * time.Duration(tries))
 			if err = r.Request.Retry(); err != nil {
 				log.Printf("Error while retrying request to %s: %v", r.Request.URL, err)
 			} else {
 				log.Printf("Successfully retried request to %s", r.Request.URL)
 			}
+			if tries == defaultMaxTries {
+				return
+			}
+			tries++
 		}
 	})
 
