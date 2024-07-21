@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"github.com/joho/godotenv"
+	"os"
+	"path/filepath"
 	"time"
 	"yarl_intern_bot/internal/parser"
 	"yarl_intern_bot/internal/readFile"
@@ -12,17 +14,25 @@ import (
 
 func main() {
 	now := time.Now()
-	err := godotenv.Load(".env")
+
+	execPath, err := os.Executable()
+	if err != nil {
+		panic(err)
+	}
+
+	execDir := filepath.Dir(execPath)
+
+	err = godotenv.Load(execDir + "/.env")
 
 	if err != nil {
 		panic(err)
 	}
 
 	// read channels list
-	channels := readFile.GetChannels("channels.txt")
+	channels := readFile.GetChannels(execDir + "/channels.txt")
 
 	//get users and their settings
-	users := user.New("config.json")
+	users := user.New(execDir + "/config.json")
 
 	// parse tg
 	telegramParser := parser.NewTelegramParser(channels)
