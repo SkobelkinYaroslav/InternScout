@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"time"
+	"yarl_intern_bot/internal/parser"
 	"yarl_intern_bot/internal/readFile"
 	"yarl_intern_bot/internal/sendResults"
 	"yarl_intern_bot/internal/user"
@@ -34,6 +35,11 @@ func main() {
 	users := user.New(execDir + "/config.json")
 
 	// parse tg
+	telegramParser := parser.NewTelegramParser(channels)
+	results := telegramParser.Telegram()
+
+	// add results to users
+	parser.InsertResults(results, users)
 
 	// send results to users
 	sendResults.Telegram(users)
