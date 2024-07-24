@@ -4,36 +4,124 @@ import (
 	"github.com/gocolly/colly"
 	"log"
 	"regexp"
+	"strings"
 	"time"
+	"yarl_intern_bot/internal/readFile"
 	"yarl_intern_bot/internal/result"
+	"yarl_intern_bot/internal/user"
+	"yarl_intern_bot/internal/utils"
 )
-
-type TelegramParser struct {
-	engine   *colly.Collector
-	channels []string
-}
 
 const (
 	defaultTimeout  = time.Second * 5
 	defaultMaxTries = 5
 )
 
-func NewTelegramParser(channels []string) TelegramParser {
-	c := colly.NewCollector(
-		colly.UserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36"),
-	)
+type Parser struct {
+	engine    *colly.Collector
+	channels  map[string]struct{}
+	users     []*user.User
+	parseTime time.Time
+	chanData  chan any
+	manager   *readFile.FileManager
+}
 
-	c.Limit(&colly.LimitRule{
-		DomainGlob: "*",
-		Delay:      defaultTimeout,
-	})
+func NewParser(
+	c *colly.Collector,
+	users []*user.User,
+	channels []string,
+	parseTime time.Time,
+	chanData chan any,
+	manager *readFile.FileManager,
+) *Parser {
+	mpChannels := utils.ArrayToMapStruct(channels)
+	p := &Parser{
+		engine:    c,
+		users:     users,
+		channels:  mpChannels,
+		parseTime: parseTime,
+		chanData:  chanData,
+		manager:   manager,
+	}
+	return p
+}
 
-	return TelegramParser{
-		engine:   c,
-		channels: channels,
+func (p *Parser) Run() {
+	interval := p.calculateInterval()
+	timer := time.NewTimer(interval)
+
+	for {
+		select {
+		case msg := <-p.chanData:
+			switch msg.(type) {
+			case time.Time:
+				p.setParseTime(msg.(time.Time))
+				timer.Stop()
+				interval = p.calculateInterval()
+				timer = time.NewTimer(interval)
+			case []string:
+				log.Printf("Run Adding channels %v\n", msg.([]string))
+				p.addChannels(msg.([]string))
+			case *user.User:
+				p.addUser(msg.(*user.User))
+			}
+		case <-timer.C:
+			results := p.parse()
+			p.insertResults(results)
+			p.chanData <- p.users
+			timer.Stop()
+			interval = 24 * time.Hour
+			timer = time.NewTimer(interval)
+		}
 	}
 }
-func (p TelegramParser) Telegram() []result.Result {
+
+func (p *Parser) setParseTime(t time.Time) {
+	p.parseTime = t
+}
+func (p *Parser) getParseTime() time.Time {
+	return p.parseTime.UTC()
+}
+
+func (p *Parser) addChannels(channels []string) {
+	log.Printf("p.channels %v\n", p.channels)
+	uniqueChannels := make([]string, 0, len(channels))
+	for _, channel := range channels {
+		if _, ok := p.channels[channel]; !ok {
+			p.channels[channel] = struct{}{}
+			uniqueChannels = append(uniqueChannels, channel)
+		}
+	}
+	err := p.manager.AddChannels(uniqueChannels)
+	if err != nil {
+		log.Println(err)
+	}
+}
+
+func (p *Parser) addUser(usr *user.User) {
+	p.users = append(p.users, usr)
+}
+
+func (p *Parser) calculateInterval() time.Duration {
+	now := time.Now()
+	nextParseTime := time.Date(now.Year(), now.Month(), now.Day(), p.parseTime.Hour(), p.parseTime.Minute(), p.parseTime.Second(), 0, now.Location())
+	if nextParseTime.Before(now) {
+		nextParseTime = nextParseTime.Add(24 * time.Hour)
+	}
+	return nextParseTime.Sub(now)
+}
+
+func (p *Parser) insertResults(results []result.Result) {
+	for _, parsedResult := range results {
+		for _, appUser := range p.users {
+			if appUser.IsInterested(parsedResult) {
+				appUser.AddResults(parsedResult)
+			}
+		}
+	}
+}
+
+func (p *Parser) parse() []result.Result {
 	now := time.Now()
 	startOfToday := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 	re := regexp.MustCompile(`(?i)<br\s*/?>`)
@@ -60,7 +148,7 @@ func (p TelegramParser) Telegram() []result.Result {
 			return
 		}
 
-		curPost := result.New(url, text, parsedDateTime)
+		curPost := result.New(url, strings.ToLower(text), parsedDateTime)
 
 		responses = append(responses, curPost)
 	})
@@ -82,7 +170,7 @@ func (p TelegramParser) Telegram() []result.Result {
 		}
 	})
 
-	for _, channel := range p.channels {
+	for channel := range p.channels {
 		p.engine.Visit(channel)
 	}
 
