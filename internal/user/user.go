@@ -20,3 +20,12 @@ func New(id int, categories []string) *User {
 func (u *User) AddResults(result result.Result) {
 	u.Results[result.URL] = struct{}{}
 }
+
+func (u *User) IsInterested(result result.Result) bool {
+	for _, category := range u.Categories {
+		if category == result.Text {
+			return true
+		}
+	}
+	return false
+}
