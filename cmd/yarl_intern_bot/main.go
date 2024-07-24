@@ -63,7 +63,6 @@ func main() {
 	go p.Run()
 
 	apiKey := os.Getenv("API_KEY")
-
 	tg := telegram.New(context.Background(), apiKey, chanData)
 	go tg.Run()
 
