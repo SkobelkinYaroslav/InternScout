@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/gocolly/colly"
 	"github.com/joho/godotenv"
+	"log"
 	"os"
 	"path/filepath"
 	"time"
@@ -21,19 +22,23 @@ func main() {
 	execDir := filepath.Dir(execPath)
 
 	err = godotenv.Load(execDir + "/.env")
-
 	if err != nil {
 		panic(err)
 	}
+	log.Println(execDir)
+	log.Println(filepath.Join(execDir, "config.json"))
+	log.Println(filepath.Join(execDir, "channels.txt"))
+
+	fr := readFile.NewFileManager(filepath.Join(execDir, "config.json"), filepath.Join(execDir, "channels.txt"))
 
 	// read channels list
-	channels, err := readFile.GetChannels(execDir + "/channels.txt")
+	channels, err := fr.GetChannels()
 	if err != nil {
 		panic(err)
 	}
 
 	//get users and their settings
-	users, err := readFile.GetUsers(execDir + "/config.json")
+	users, err := fr.GetUsers()
 	if err != nil {
 		panic(err)
 	}
@@ -54,7 +59,7 @@ func main() {
 		Delay:      5 * time.Second,
 	})
 
-	p := parser.NewParser(c, users, channels, parsedTime, chanData)
+	p := parser.NewParser(c, users, channels, parsedTime, chanData, fr)
 	go p.Run()
 
 	apiKey := os.Getenv("API_KEY")
