@@ -1,19 +1,18 @@
 package main
 
 import (
-	"fmt"
+	"context"
+	"github.com/gocolly/colly"
 	"github.com/joho/godotenv"
 	"os"
 	"path/filepath"
 	"time"
+	"yarl_intern_bot/internal/parser"
 	"yarl_intern_bot/internal/readFile"
-	"yarl_intern_bot/internal/sendResults"
-	"yarl_intern_bot/internal/user"
+	"yarl_intern_bot/internal/telegram"
 )
 
 func main() {
-	now := time.Now()
-
 	execPath, err := os.Executable()
 	if err != nil {
 		panic(err)
@@ -28,16 +27,41 @@ func main() {
 	}
 
 	// read channels list
-	channels := readFile.GetChannels(execDir + "/channels.txt")
+	channels, err := readFile.GetChannels(execDir + "/channels.txt")
+	if err != nil {
+		panic(err)
+	}
 
 	//get users and their settings
-	users := user.New(execDir + "/config.json")
+	users, err := readFile.GetUsers(execDir + "/config.json")
+	if err != nil {
+		panic(err)
+	}
 
-	// parse tg
+	chanData := make(chan any)
+	timeString := "15:04"
+	parsedTime, err := time.Parse("15:04", timeString)
+	if err != nil {
+		panic(err)
+	}
 
-	// send results to users
-	sendResults.Telegram(users)
+	c := colly.NewCollector(
+		colly.UserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36"),
+	)
 
-	fmt.Printf("%d posts were processed in %.3f", len(results), time.Since(now).Minutes())
+	c.Limit(&colly.LimitRule{
+		DomainGlob: "*",
+		Delay:      5 * time.Second,
+	})
+
+	p := parser.NewParser(c, users, channels, parsedTime, chanData)
+	go p.Run()
+
+	apiKey := os.Getenv("API_KEY")
+
+	tg := telegram.New(context.Background(), apiKey, chanData)
+	go tg.Run()
+
+	select {}
 
 }
