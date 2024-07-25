@@ -36,7 +36,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-
 	//get users and their settings
 	users, err := fr.GetUsers()
 	if err != nil {
