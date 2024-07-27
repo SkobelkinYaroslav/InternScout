@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io"
 	"os"
+	"strings"
 	"yarl_intern_bot/internal/result"
 )
 
@@ -48,7 +49,7 @@ func (u *User) AddResults(result result.Result) {
 
 func (u *User) IsInterested(result result.Result) bool {
 	for _, category := range u.Categories {
-		if category == result.Text {
+		if strings.Contains(result.Text, category) {
 			return true
 		}
 	}
