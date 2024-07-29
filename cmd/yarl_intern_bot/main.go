@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/gocolly/colly"
 	"github.com/joho/godotenv"
-	"log"
 	"os"
 	"path/filepath"
 	"time"
@@ -25,9 +24,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	log.Println(execDir)
-	log.Println(filepath.Join(execDir, "config.json"))
-	log.Println(filepath.Join(execDir, "channels.txt"))
 
 	fr := readFile.NewFileManager(filepath.Join(execDir, "config.json"), filepath.Join(execDir, "channels.txt"))
 
@@ -50,6 +46,7 @@ func main() {
 	}
 
 	c := colly.NewCollector(
+		colly.AllowURLRevisit(),
 		colly.UserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36"),
 	)
 
