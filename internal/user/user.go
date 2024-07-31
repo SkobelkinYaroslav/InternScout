@@ -55,3 +55,7 @@ func (u *User) IsInterested(result result.Result) bool {
 	}
 	return false
 }
+
+func (u *User) ClearResults() {
+	u.Results = make(map[string]struct{})
+}

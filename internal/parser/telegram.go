@@ -66,8 +66,12 @@ func (p *Parser) Run() {
 				p.addUser(msg.(*user.User))
 			}
 		case <-timer.C:
+			p.clearResults()
+			log.Printf("cleared results, users[0] = %v", p.users[0])
 			results := p.parse()
+			log.Printf("succesfully parsed, len(results) = %d", len(results))
 			p.insertResults(results)
+			log.Printf("inserted results, users[0] = %v", p.users[0])
 			p.chanData <- p.users
 			timer.Stop()
 			interval = 24 * time.Hour
@@ -120,6 +124,11 @@ func (p *Parser) insertResults(results []result.Result) {
 		}
 	}
 }
+func (p *Parser) clearResults() {
+	for _, appUser := range p.users {
+		appUser.ClearResults()
+	}
+}
 
 func (p *Parser) parse() []result.Result {
 	now := time.Now()
@@ -145,10 +154,12 @@ func (p *Parser) parse() []result.Result {
 		}
 
 		if localTime.Before(startOfToday) {
+			log.Printf("post is outdated: %v", localTime)
 			return
 		}
 
 		curPost := result.New(url, strings.ToLower(text), parsedDateTime)
+		log.Printf("curPost = %v\n", curPost)
 
 		responses = append(responses, curPost)
 	})
@@ -170,8 +181,13 @@ func (p *Parser) parse() []result.Result {
 		}
 	})
 
+	log.Printf("current channels, len(channels) = %d", len(p.channels))
 	for channel := range p.channels {
-		p.engine.Visit(channel)
+		log.Printf("Visiting channel %s\n", channel)
+		err := p.engine.Visit(channel)
+		if err != nil {
+			log.Printf("error while visiting URL: %s : %v", channel, err)
+		}
 	}
 
 	return responses
