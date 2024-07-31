@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	defaultTimeout  = time.Second * 5
+	defaultTimeout  = time.Second * 10
 	defaultMaxTries = 5
 )
 
@@ -60,18 +60,14 @@ func (p *Parser) Run() {
 				interval = p.calculateInterval()
 				timer = time.NewTimer(interval)
 			case []string:
-				log.Printf("Run Adding channels %v\n", msg.([]string))
 				p.addChannels(msg.([]string))
 			case *user.User:
 				p.addUser(msg.(*user.User))
 			}
 		case <-timer.C:
 			p.clearResults()
-			log.Printf("cleared results, users[0] = %v", p.users[0])
 			results := p.parse()
-			log.Printf("succesfully parsed, len(results) = %d", len(results))
 			p.insertResults(results)
-			log.Printf("inserted results, users[0] = %v", p.users[0])
 			p.chanData <- p.users
 			timer.Stop()
 			interval = 24 * time.Hour
@@ -88,7 +84,6 @@ func (p *Parser) getParseTime() time.Time {
 }
 
 func (p *Parser) addChannels(channels []string) {
-	log.Printf("p.channels %v\n", p.channels)
 	uniqueChannels := make([]string, 0, len(channels))
 	for _, channel := range channels {
 		if _, ok := p.channels[channel]; !ok {
@@ -159,7 +154,6 @@ func (p *Parser) parse() []result.Result {
 		}
 
 		curPost := result.New(url, strings.ToLower(text), parsedDateTime)
-		log.Printf("curPost = %v\n", curPost)
 
 		responses = append(responses, curPost)
 	})
@@ -181,9 +175,7 @@ func (p *Parser) parse() []result.Result {
 		}
 	})
 
-	log.Printf("current channels, len(channels) = %d", len(p.channels))
 	for channel := range p.channels {
-		log.Printf("Visiting channel %s\n", channel)
 		err := p.engine.Visit(channel)
 		if err != nil {
 			log.Printf("error while visiting URL: %s : %v", channel, err)

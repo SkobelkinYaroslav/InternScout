@@ -48,7 +48,7 @@ API_KEY=<ваш апи ключ>
 ### 5. Соберите проект
 
 ```sh
-go build -o main ./cmd/yarl_intern_bot/main.go
+go build -o main ./cmd/scout/main.go
 ```
 
 ### 6. Запустите проект

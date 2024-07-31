@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"encoding/json"
 	"io"
-	"log"
 	"os"
 	"strings"
 	"yarl_intern_bot/internal/user"
@@ -44,9 +43,6 @@ func (f *FileManager) GetChannels() ([]string, error) {
 }
 
 func (f *FileManager) AddChannels(channels []string) error {
-	log.Printf("Adding channels to file %s\n", f.channelFile)
-	log.Printf("Channels: %v\n", channels)
-
 	file, err := os.OpenFile(f.channelFile, os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
 		return err

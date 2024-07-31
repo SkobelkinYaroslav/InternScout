@@ -64,9 +64,7 @@ func (b *TgBot) Run() {
 
 func (b *TgBot) addChannelsHandler() func(ctx context.Context, botInstance *bot.Bot, update *models.Update) {
 	return func(ctx context.Context, botInstance *bot.Bot, update *models.Update) {
-		log.Printf("Adding channels: %v\n", update.Message.Text)
 		channels := strings.Split(update.Message.Text, " ")[1:]
-		log.Printf("Adding channels: %v\n", channels)
 		b.chanData <- channels
 		message := "Каналы успешно добавлены: " + strings.Join(channels, ", ")
 		b.sendMessage(update.Message.Chat.ID, message)
